@@ -1,5 +1,5 @@
 # tensorQTL
-tensorQTL workflow <br />
+ <br />
 NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br />
                                             --vcf {vcf file} <br />
                                             --covariates {covariates file} <br />
