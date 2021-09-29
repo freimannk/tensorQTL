@@ -8,4 +8,5 @@ NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br
                                             --sample_genotype_ids {file with sample id and matching genotype id}  <br />
                                             --variant_ranges {file with variant position ranges to analyse in one process} <br />
                                             --genes_tss {file to  specify the center of the cis-window (usually the TSS), with start == end-1} <br />
+                                            --pvalue {to filter results by p-value, default: 1}  <br />
                                             -resume
