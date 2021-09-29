@@ -2,7 +2,7 @@
 
 
 params.covariates = ''
-params.expression_bed = ''  
+params.expression_file = ''  
 params.outputpath = ''
 params.vcf='' 
 params.study=''
@@ -16,7 +16,7 @@ Channel
        .splitText().map{it -> it.trim()}
        .set{variant_ranges_ch} // for hg38
 covariates_ch = Channel.fromPath(params.covariates).collect()
-expression_ch = Channel.fromPath(params.expression_bed).collect()
+expression_ch = Channel.fromPath(params.expression_file).collect()
 sample_genotype_ids_ch = Channel.fromPath(params.sample_genotype_ids).collect()
 sample_genotype_ids_for_filtering_ch = Channel.fromPath(params.sample_genotype_ids).collect()
 genes_tss_ch = Channel.fromPath(params.genes_tss).collect()  // for hg38
