@@ -11,4 +11,4 @@ NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br
                                             --pvalue {to filter results by p-value, default: 1}  <br />
                                             -resume  <br />
 
-### genes_tss file and variant_ranges file are in the data/ directory.
+#### genes_tss file and variant_ranges file are in the data/ directory.
