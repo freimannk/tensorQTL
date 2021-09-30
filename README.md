@@ -12,3 +12,4 @@ NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br
                                             -resume  <br />
 
 #### genes_tss file and variant_ranges file are in the data/ directory.
+#### nextflow.config needs fixing (conda) to run it
