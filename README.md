@@ -1,7 +1,7 @@
 # tensorQTL
  <br />
 NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br />
-                                            --vcf {vcf file} <br />
+                                            --vcf {prefix path to vcf file and its indexed file} <br />
                                             --covariates {covariates file} <br />
                                             --expression_file {expression file}  <br /> 
                                             --study {study name} <br />

@@ -27,13 +27,13 @@ genes_tss_ch = Channel.fromPath(params.genes_tss).collect()  // for hg38
 Channel
     .from(params.vcf)
     .map { study -> [file("${study}.vcf.gz"), file("${study}.vcf.gz.csi")]}
-    .set { vcf_variants_huge_ch }
+    .set { vcf_ch }
 
 
 process FilterSamplesFromVCF {
 
     input:
-    set file(huge_vcf), file(indexed) from vcf_variants_huge_ch
+    set file(huge_vcf), file(indexed) from vcf_ch
     file ids_file from sample_genotype_ids_for_filtering_ch
 
 
@@ -128,7 +128,7 @@ process MakeBFiles {
 
 
     output:
-    tuple file("${vcf.simpleName}.bed"), file("${vcf.simpleName}.bim"), file("${vcf.simpleName}.fam") into genotypes_CH
+    tuple file("${vcf.simpleName}.bed"), file("${vcf.simpleName}.bim"), file("${vcf.simpleName}.fam") into bFiles_ch
 
 
     script:
@@ -144,7 +144,7 @@ process MakeBFiles {
 process TensorQTL {
     publishDir "${params.outputpath}/${params.study}", mode: 'copy', overwrite: true
     input:
-    set file(bed), file(bim), file(fam), file(expressionFile) from genotypes_CH.combine(tabixed_formated_ge_bed_ch.flatten())
+    set file(bed), file(bim), file(fam), file(expressionFile) from bFiles_ch.combine(tabixed_formated_ge_bed_ch.flatten())
     file covariatesFile from covariates_ch
 
 
