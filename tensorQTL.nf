@@ -68,7 +68,7 @@ process PrepateGeneExpressionFile {
    
 
         """
-            python $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t ${genes_tss} -n ${params.study}
+            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t ${genes_tss} -n ${params.study}
 
 
         """
