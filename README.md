@@ -19,6 +19,6 @@ NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br
 
 
  - francois4/tensorqtl:latest docker img too big (fails sometimes)? <br/>
- - biocontainers/bcftools:v1.9-1-deb_cv1 img do not contain ps which is needed for NF stats collection for trave file
+ - biocontainers/bcftools:v1.9-1-deb_cv1 img do not contain ps which is needed for NF stats collection for trace file
                 
 
