@@ -31,6 +31,7 @@ Channel
 
 
 process FilterSamplesFromVCF {
+    container = 'quay.io/eqtlcatalogue/qtlmap:v20.05.1'
 
     input:
     set file(huge_vcf), file(indexed) from vcf_ch
@@ -51,6 +52,7 @@ process FilterSamplesFromVCF {
 
 
 process PrepateGeneExpressionFile {
+    container = 'quay.io/fhcrc-microbiome/python-pandas:4a6179f'
 
     input:
     file ge_file from expression_ch
@@ -76,7 +78,7 @@ process PrepateGeneExpressionFile {
 }
 
 process TabixGEBedFile {
-
+    container = 'quay.io/eqtlcatalogue/qtlmap:v20.05.1'
 
     input:
     file ge_file from formated_ge_bed_ch
@@ -101,7 +103,7 @@ process TabixGEBedFile {
 
 
 process GenerateVariantVCFFiles {
- 
+    container = 'quay.io/eqtlcatalogue/qtlmap:v20.05.1'
 
     input:
     set file(vcf), file(indexed), val(variant_range) from filtered_vcf_ch.combine(variant_ranges_ch.flatten())
@@ -121,6 +123,7 @@ process GenerateVariantVCFFiles {
 }
 
 process MakeBFiles {
+    container = 'quay.io/eqtlcatalogue/qtlmap:v20.05.1'
 
 
     input:
@@ -143,6 +146,7 @@ process MakeBFiles {
 
 process TensorQTL {
     publishDir "${params.outputpath}/${params.study}", mode: 'copy', overwrite: true
+    container= 'quay.io/eqtlcatalogue/tensorqtl:v21.10.1'
     input:
     set file(bed), file(bim), file(fam), file(expressionFile) from bFiles_ch.combine(tabixed_formated_ge_bed_ch.flatten())
     file covariatesFile from covariates_ch

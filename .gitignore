@@ -2,3 +2,5 @@
 work/
 debug/
 singularity/
+*.html
+tensorQTL_workflow_trace.txt
