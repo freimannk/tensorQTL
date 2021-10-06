@@ -14,12 +14,7 @@ NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br
 #### genes_tss file and variant_ranges file are in the data/ directory.
 
  <br />
+ #### example of sample_genotype_ids file is in the in the /example_files directory.
+
  
-#### TODOs
-
-
- - francois4/tensorqtl:latest docker img too big (fails sometimes)? <br/>
- - biocontainers/bcftools:v1.9-1-deb_cv1 img do not contain ps which is needed for NF stats collection for trace file
- - change executors
-                
 
