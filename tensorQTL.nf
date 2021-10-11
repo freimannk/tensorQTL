@@ -8,20 +8,27 @@ params.vcf=''
 params.study=''
 params.pvalue=1
 params.sample_genotype_ids=''
-params.genes_tss=''
-params.variant_ranges=''
+params.only_autosomal_chr=true
 
-Channel
-       .fromPath(params.variant_ranges)
-       .splitText().map{it -> it.trim()}
-       .set{variant_ranges_ch} // for hg38
+// for hg38
 covariates_ch = Channel.fromPath(params.covariates).collect()
 expression_ch = Channel.fromPath(params.expression_file).collect()
 sample_genotype_ids_ch = Channel.fromPath(params.sample_genotype_ids).collect()
 sample_genotype_ids_for_filtering_ch = Channel.fromPath(params.sample_genotype_ids).collect()
-genes_tss_ch = Channel.fromPath(params.genes_tss).collect()  // for hg38
 
+variant_path = ''
 
+if( (params.only_autosomal_chr == true) ){
+  Channel
+       variant_path = "$baseDir/data/variants_regions.tsv"
+} else{
+       variant_path = "$baseDir/data/variants_regions_with_chrX.tsv"
+}
+
+Channel
+       .fromPath(variant_path)
+       .splitText().map{it -> it.trim()}
+       .set{variant_ranges_ch} 
 
 
 Channel
@@ -39,13 +46,13 @@ process FilterSamplesFromVCF {
 
 
     output:
-    tuple file("${huge_vcf.simpleName}_filtered.vcf.gz"), file("${huge_vcf.simpleName}_filtered.vcf.gz.csi") into filtered_vcf_ch
+    tuple file("${huge_vcf.simpleName}___filtered.vcf.gz"), file("${huge_vcf.simpleName}___filtered.vcf.gz.csi") into filtered_vcf_ch
 
     script:
         """
         awk '(NR>1)''{print \$2}' ${ids_file} > ${huge_vcf.simpleName}.txt
-        bcftools view -S ${huge_vcf.simpleName}.txt ${huge_vcf} -Oz -o ${huge_vcf.simpleName}_filtered.vcf.gz
-        bcftools index ${huge_vcf.simpleName}_filtered.vcf.gz
+        bcftools view -S ${huge_vcf.simpleName}.txt ${huge_vcf} -Oz -o ${huge_vcf.simpleName}___filtered.vcf.gz
+        bcftools index ${huge_vcf.simpleName}___filtered.vcf.gz
         """
 
 }
@@ -57,7 +64,6 @@ process PrepateGeneExpressionFile {
     input:
     file ge_file from expression_ch
     file ids_file from sample_genotype_ids_ch
-    file genes_tss from genes_tss_ch
 
 
 
@@ -70,7 +76,7 @@ process PrepateGeneExpressionFile {
    
 
         """
-            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t ${genes_tss} -n ${params.study}
+            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.study}
 
 
         """
@@ -92,7 +98,7 @@ process TabixGEBedFile {
 
     script:
    
-
+ 
         """
             bgzip ${ge_file} 
             tabix -p bed ${ge_file}.gz
@@ -136,7 +142,7 @@ process MakeBFiles {
 
     script:
         """
-         plink2 --make-bed --output-chr chrM --vcf ${vcf} --out ${vcf.simpleName}
+         plink2 --make-bed --output-chr chrM --vcf ${vcf} --out ${vcf.simpleName} --const-fid
 
 
         """
