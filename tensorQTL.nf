@@ -9,6 +9,10 @@ params.study=''
 params.pvalue=1
 params.sample_genotype_ids=''
 params.only_autosomal_chr=true
+params.median_tpm_filtration_file=''
+params.vcf_genotype_field='DS'
+params.filter_cis_window=''
+
 
 // for hg38
 covariates_ch = Channel.fromPath(params.covariates).collect()
@@ -19,10 +23,9 @@ sample_genotype_ids_for_filtering_ch = Channel.fromPath(params.sample_genotype_i
 variant_path = ''
 
 if( (params.only_autosomal_chr == true) ){
-  Channel
-       variant_path = "$baseDir/data/variants_regions.tsv"
+       variant_path = "$baseDir/data/variant_regions_containing_500_variants.tsv"
 } else{
-       variant_path = "$baseDir/data/variants_regions_with_chrX.tsv"
+       variant_path = "$baseDir/data/variants_regions_w_chrX.tsv"
 }
 
 Channel
@@ -73,10 +76,12 @@ process PrepateGeneExpressionFile {
 
 
     script:
+    median_tpm_filtration_file = params.median_tpm_filtration_file ? "-f ${params.median_tpm_filtration_file}" : ""
+
    
 
         """
-            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.study}
+            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.study} ${median_tpm_filtration_file}
 
 
         """
@@ -128,45 +133,63 @@ process GenerateVariantVCFFiles {
 
 }
 
-process MakeBFiles {
-    container = 'quay.io/eqtlcatalogue/qtlmap:v20.05.1'
 
+
+process VcfToDosage{
+    container = 'quay.io/eqtlcatalogue/susie-finemapping:v20.08.1'
 
     input:
     file(vcf) from variant_vcf_ch.flatten()
 
-
     output:
-    tuple file("${vcf.simpleName}.bed"), file("${vcf.simpleName}.bim"), file("${vcf.simpleName}.fam") into bFiles_ch
-
+    file("${vcf.simpleName}.tsv.gz") into genotype_matrix_ch
 
     script:
+    if(params.vcf_genotype_field == 'DS'){
         """
-         plink2 --make-bed --output-chr chrM --vcf ${vcf} --out ${vcf.simpleName} --const-fid
-
-
+        #Extract header
+        printf 'CHROM\\nPOS\\nID\\n' > 4_columns.tsv
+        bcftools query -l ${vcf} > sample_list.tsv
+        cat 4_columns.tsv sample_list.tsv > header.tsv
+        csvtk transpose header.tsv -T | gzip > header_row.tsv.gz
+        #Extract dosage and merge
+        bcftools query -f "%CHROM\\t%POS\\t%ID[\\t%DS]\\n" ${vcf} | gzip > dose_matrix.tsv.gz
+        zcat header_row.tsv.gz dose_matrix.tsv.gz | bgzip > ${vcf.simpleName}.tsv.gz
         """
-
+    } else if (params.vcf_genotype_field == 'GT'){
+        """
+        #Extract header
+        printf 'CHROM\\nPOS\\nID\\n' > 4_columns.tsv
+        bcftools query -l ${vcf} > sample_list.tsv
+        cat 4_columns.tsv sample_list.tsv > header.tsv
+        csvtk transpose header.tsv -T | gzip > header_row.tsv.gz
+        #Extract dosage and merge
+        bcftools +dosage ${vcf} -- -t GT | tail -n+2 | gzip > dose_matrix.tsv.gz
+        zcat header_row.tsv.gz dose_matrix.tsv.gz | bgzip > ${vcf.simpleName}.tsv.gz
+        """
+    } 
 }
+
 
 
 process TensorQTL {
     publishDir "${params.outputpath}/${params.study}", mode: 'copy', overwrite: true
     container= 'quay.io/eqtlcatalogue/tensorqtl:v21.10.1'
     input:
-    set file(bed), file(bim), file(fam), file(expressionFile) from bFiles_ch.combine(tabixed_formated_ge_bed_ch.flatten())
+    set file(genotype_matrix), file(expressionFile) from genotype_matrix_ch.combine(tabixed_formated_ge_bed_ch.flatten())
     file covariatesFile from covariates_ch
 
 
     output:
-    file '*.parquet' 
+    file '*.parquet' optional true
 
 
     script:
+        filter_cis_window = params.filter_cis_window ? "-f ${params.filter_cis_window}" : ""
+
   
         """
-        python3 -m tensorqtl ${bed.baseName} ${expressionFile} ${params.study}_${bed.simpleName} --covariates ${covariatesFile} --mode trans --pval_threshold ${params.pvalue} --batch_size 10000 
-
+        python3 $baseDir/scripts/tensorQTL.py -e ${expressionFile} -c ${covariatesFile} -g ${genotype_matrix} -p ${params.pvalue} -n ${params.study}_${genotype_matrix.simpleName} ${filter_cis_window}
         """
 }
 
