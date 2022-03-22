@@ -36,19 +36,13 @@ merged_df = pd.merge(Homo_sapiens_GRCh38_96_genes_TSS_df,
                      left_index=True
                      )
 
-
-"""def put_chr_in_front(chr_nr):
-    return 'chr' + str(chr_nr)"""
-
-
-#chr = merged_df.chr.map(put_chr_in_front)
-#tensorQTL_ge_df = merged_df.assign(chr=chr.values)
-#tensorQTL_ge_df = tensorQTL_ge_df.rename(columns={'chr': '#chr'}, inplace=False)
 tensorQTL_ge_df = merged_df.rename(columns={'chr': '#chr'}, inplace=False)
 
 if args.median_tpm_filtration_file is not None:
     tpm_filtered_genes_df = pd.read_csv(args.median_tpm_filtration_file, sep='\t', compression='gzip')
     phenotype_ids = tpm_filtered_genes_df.phenotype_id.to_list()
     tensorQTL_ge_df = tensorQTL_ge_df[tensorQTL_ge_df.gene_id.isin(phenotype_ids)]
+
+tensorQTL_ge_df= tensorQTL_ge_df.sort_values(by=['#chr', 'start'])
 tensorQTL_ge_df.to_csv(f"{args.study_name}_tensorQTL_wf_ge.bed", sep="\t", quoting=csv.QUOTE_NONE,
                        index=False)
