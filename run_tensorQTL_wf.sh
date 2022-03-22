@@ -12,7 +12,6 @@
 # mälu
 #SBATCH --mem=5G
 
-#siia alla on vaja kirjutada protsessid
 module load any/jdk/1.8.0_265
 module load any/singularity/3.5.3
 
