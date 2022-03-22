@@ -9,14 +9,13 @@ params.study=''
 params.pvalue=1
 params.sample_genotype_ids=''
 params.only_autosomal_chr=true
-params.missing_DS=true
 params.median_tpm_filtration_file=''
 params.vcf_genotype_field='DS'
 params.filter_cis_window=''
 params.maf_filter=0.05
 
  
-// for hg38
+
 covariates_ch = Channel.fromPath(params.covariates).collect()
 expression_ch = Channel.fromPath(params.expression_file).collect()
 sample_genotype_ids_ch = Channel.fromPath(params.sample_genotype_ids).collect()
@@ -203,12 +202,8 @@ process VcfToDosage{
     output:
     file("${matrix_csv.simpleName}.txt.gz") into genotype_matrix_DS_missing_removed_ch
 
-    
-    when:
-    params.missing_DS
-
     script:
-    if(params.vcf_genotype_field == 'DS'){  // params.missing_DS=false
+    if(params.vcf_genotype_field == 'DS'){  
 
         """
         python3 $baseDir/scripts/correct_missing_DS.py -i ${matrix_csv} -n ${matrix_csv.simpleName}
@@ -222,16 +217,12 @@ process VcfToDosage{
 }
 
 
-if(params.missing_DS == true){ // TODO: replace
-    genotype_matrix_DS_ch=Channel.empty()
-} 
-
 
 process TensorQTL {
     publishDir "${params.outputpath}/${params.study}", mode: 'copy', overwrite: true
     container= 'quay.io/eqtlcatalogue/tensorqtl:v21.10.1'
     input:
-    set file(genotype_matrix), file(expressionFile) from genotype_matrix_DS_missing_removed_ch.mix(genotype_matrix_DS_ch).combine(tabixed_formated_ge_bed_ch.flatten())
+    set file(genotype_matrix), file(expressionFile) from genotype_matrix_DS_missing_removed_ch.combine(tabixed_formated_ge_bed_ch.flatten())
     file covariatesFile from filtered_covariates_ch
 
 
