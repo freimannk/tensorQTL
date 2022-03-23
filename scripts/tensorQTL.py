@@ -45,16 +45,8 @@ if len(genotype_df.index) > 0:
     covariates_df = pd.read_csv(args.covariates_file, sep='\t', index_col=0).T
     trans_df = trans.map_trans(genotype_df, phenotype_df, covariates_df, batch_size=10000,
                             return_sparse=True, pval_threshold=args.pvalue, maf_threshold=args.maf)
-    print("phen pos")
-    print(phenotype_pos_df)
-    print("trans")
-    print(trans_df)
     if args.filter_cis_window is not None:
-        print("filter is on:")
-        print(args.filter_cis_window)
         trans_df = trans.filter_cis(trans_df, phenotype_pos_df.T.to_dict(), variant_df, window=args.filter_cis_window)
-        print("after filt")
-        print(trans_df)
 
     trans_df.to_parquet(os.path.join('.', args.study_name + '.trans_qtl_pairs.parquet'))
 
