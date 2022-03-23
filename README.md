@@ -3,7 +3,7 @@
 NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br />
                                              --vcf {prefix path to vcf file and its indexed file} <br />
                                              --covariates {covariates file, from qtlmap workflow} <br />
-                                             --expression_file {expression file}  <br /> 
+                                             --expression_file {expression file, from qcnorm workflow}  <br /> 
                                              --study {study name} <br />
                                              --vcf_genotype_field {DS or GT, default= DS } <br />
                                              --maf_filter {MAF filter, default = 0.05  } <br />
