@@ -1,7 +1,7 @@
 # tensorQTL workflow
  <br />
 NXF_VER=20.10.0 ./nextflow run tensorQTL.nf <br /> --outputpath {outputpath} <br />
-                                             --vcf {prefix path to vcf file and its indexed file, example: /gpfs/space/home/a82371/BLUEPRINT/BLUEPRINT.MAF001, /BLUEPRINT folder has to contain files: BLUEPRINT.MAF001.vcf.gz and BLUEPRINT.MAF001.vcf.gz.csi} <br />
+                                             --vcf {prefix path to vcf file and its indexed file, example: ~/BLUEPRINT/BLUEPRINT.MAF001, /BLUEPRINT folder has to contain files: BLUEPRINT.MAF001.vcf.gz and BLUEPRINT.MAF001.vcf.gz.csi} <br />
                                              --covariates {covariates file, from qtlmap workflow} <br />
                                              --expression_file {expression file, from qcnorm workflow}  <br /> 
                                              --study {study name} <br />
