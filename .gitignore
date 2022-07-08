@@ -5,3 +5,4 @@ singularity/
 *.html*
 tensorQTL_workflow_trace.txt*
 slurm*
+testing_results/

@@ -4,15 +4,17 @@
 params.covariates = ''
 params.expression_file = ''  
 params.outputpath = ''
-params.vcf='' 
-params.study=''
+params.vcf_prefix_path='' 
+params.dataset=''  
 params.pvalue=1
 params.sample_genotype_ids=''
 params.only_autosomal_chr=true
 params.median_tpm_filtration_file=''
 params.vcf_genotype_field='DS'
-params.filter_cis_window=''
 params.maf_filter=0.05
+params.hwe=1e-5
+params.testing = false
+
 
  
 
@@ -24,7 +26,10 @@ sample_genotype_ids_for_cov_filtering_ch = Channel.fromPath(params.sample_genoty
 
 
 variant_path = ''
-if(params.only_autosomal_chr == true){
+if(params.testing == true){
+    variant_path= "$baseDir/data/testing_data/variants_regions_testing.tsv" 
+} 
+else if(params.only_autosomal_chr == true){
     variant_path="$baseDir/data/variants_regions.tsv" 
 } else{
     variant_path = "$baseDir/data/variants_regions_with_chrX.tsv"
@@ -37,8 +42,8 @@ Channel
 
 
 Channel
-    .from(params.vcf)
-    .map { study -> [file("${study}.vcf.gz"), file("${study}.vcf.gz.csi")]}
+    .from(params.vcf_prefix_path)
+    .map { dataset -> [file("${dataset}.vcf.gz"), file("${dataset}.vcf.gz.csi")]}
     .set { vcf_ch }
 
 
@@ -51,13 +56,16 @@ process FilterSamplesFromVCF {
 
 
     output:
-    tuple file("${huge_vcf.simpleName}___filtered.vcf.gz"), file("${huge_vcf.simpleName}___filtered.vcf.gz.csi") into filtered_vcf_ch
+    tuple file("${huge_vcf.simpleName}_tagged_filtered.vcf.gz"), file("${huge_vcf.simpleName}_tagged_filtered.vcf.gz.csi") into filtered_vcf_ch     
+
 
     script:
         """
         awk '(NR>1)''{print \$2}' ${ids_file} > ${huge_vcf.simpleName}.txt
-        bcftools view -S ${huge_vcf.simpleName}.txt ${huge_vcf} -Oz -o ${huge_vcf.simpleName}___filtered.vcf.gz
-        bcftools index ${huge_vcf.simpleName}___filtered.vcf.gz
+        bcftools view -S ${huge_vcf.simpleName}.txt ${huge_vcf} -Oz -o ${huge_vcf.simpleName}___samples_filtered.vcf.gz
+        bcftools +fill-tags ${huge_vcf.simpleName}___samples_filtered.vcf.gz -Oz -o ${huge_vcf.simpleName}_tagged.vcf.gz
+        bcftools filter -i 'INFO/HWE > ${params.hwe} & MAF[0] > ${params.maf_filter}' ${huge_vcf.simpleName}_tagged.vcf.gz -Oz -o ${huge_vcf.simpleName}_tagged_filtered.vcf.gz
+        bcftools index ${huge_vcf.simpleName}_tagged_filtered.vcf.gz
         """
 
 }
@@ -83,7 +91,7 @@ process PrepateGeneExpressionFile {
    
 
         """
-            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.study} ${median_tpm_filtration_file}
+            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.dataset} ${median_tpm_filtration_file}
 
 
         """
@@ -181,12 +189,12 @@ process VcfToDosage{
 
 
     output:
-    file("${params.study}_filtered_covariates.txt") into filtered_covariates_ch
+    file("${params.dataset}_filtered_covariates.txt") into filtered_covariates_ch
 
     script:
 
         """
-        python3 $baseDir/scripts/filter_covariates.py -c ${covariatesFile} -n ${params.study} -s ${ids_file}
+        python3 $baseDir/scripts/filter_covariates.py -c ${covariatesFile} -n ${params.dataset} -s ${ids_file}
 
         """
     
@@ -203,23 +211,16 @@ process VcfToDosage{
     file("${matrix_csv.simpleName}.txt.gz") into genotype_matrix_DS_missing_removed_ch
 
     script:
-    if(params.vcf_genotype_field == 'DS'){  
-
         """
         python3 $baseDir/scripts/correct_missing_DS.py -i ${matrix_csv} -n ${matrix_csv.simpleName}
 
         """
-    } else if (params.vcf_genotype_field == 'GT'){
-        """
-       
-        """
-    } 
 }
 
 
 
 process TensorQTL {
-    publishDir "${params.outputpath}/${params.study}", mode: 'copy', overwrite: true
+    publishDir "${params.outputpath}/${params.dataset}", mode: 'copy', overwrite: true
     container= 'quay.io/eqtlcatalogue/tensorqtl:v21.10.1'
     input:
     set file(genotype_matrix), file(expressionFile) from genotype_matrix_DS_missing_removed_ch.combine(tabixed_formated_ge_bed_ch.flatten())
@@ -231,11 +232,9 @@ process TensorQTL {
 
 
     script:
-        filter_cis_window = params.filter_cis_window ? "-f ${params.filter_cis_window}" : ""
-
   
         """
-        python3 $baseDir/scripts/tensorQTL.py -e ${expressionFile} -c ${covariatesFile} -g ${genotype_matrix} -p ${params.pvalue} -m ${params.maf_filter} -n ${params.study}_${genotype_matrix.simpleName} ${filter_cis_window}
+        python3 $baseDir/scripts/tensorQTL.py -e ${expressionFile} -c ${covariatesFile} -g ${genotype_matrix} -p ${params.pvalue} -m ${params.maf_filter} -n ${params.dataset}_${genotype_matrix.simpleName}
         """
 }
 
