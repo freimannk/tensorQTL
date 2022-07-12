@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 
+nextflow.enable.dsl = 1
 
 params.covariates = ''
 params.expression_file = ''  
