@@ -92,7 +92,7 @@ process PrepateGeneExpressionFile {
    
 
         """
-            python3 $baseDir/scripts/generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.dataset} ${median_tpm_filtration_file}
+            generate_ge.py -g ${ge_file} -s ${ids_file} -t $baseDir/data/Homo_sapiens_GRCh38_96_genes_TSS.tsv -n ${params.dataset} ${median_tpm_filtration_file}
 
 
         """
@@ -195,8 +195,7 @@ process VcfToDosage{
     script:
 
         """
-        python3 $baseDir/scripts/filter_covariates.py -c ${covariatesFile} -n ${params.dataset} -s ${ids_file}
-
+        filter_covariates.py -c ${covariatesFile} -n ${params.dataset} -s ${ids_file}
         """
     
 }
@@ -213,7 +212,7 @@ process VcfToDosage{
 
     script:
         """
-        python3 $baseDir/scripts/correct_missing_DS.py -i ${matrix_csv} -n ${matrix_csv.simpleName}
+        correct_missing_DS.py -i ${matrix_csv} -n ${matrix_csv.simpleName}
 
         """
 }
@@ -235,7 +234,7 @@ process TensorQTL {
     script:
   
         """
-        python3 $baseDir/scripts/tensorQTL.py -e ${expressionFile} -c ${covariatesFile} -g ${genotype_matrix} -p ${params.pvalue} -m ${params.maf_filter} -n ${params.dataset}_${genotype_matrix.simpleName}
+        tensorQTL.py -e ${expressionFile} -c ${covariatesFile} -g ${genotype_matrix} -p ${params.pvalue} -m ${params.maf_filter} -n ${params.dataset}_${genotype_matrix.simpleName}
         """
 }
 
