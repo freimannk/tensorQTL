@@ -14,7 +14,7 @@ params.median_tpm_filtration_file=''
 params.vcf_genotype_field='DS'
 params.maf_filter=0.05
 params.hwe=1e-5
-params.testing = false
+params.batf3_region_only = false
 
 
  
@@ -27,7 +27,7 @@ sample_genotype_ids_for_cov_filtering_ch = Channel.fromPath(params.sample_genoty
 
 
 variant_path = ''
-if(params.testing == true){
+if(params.batf3_region_only == true){
     variant_path= "$baseDir/data/testing_data/variants_regions_testing.tsv" 
 } 
 else if(params.only_autosomal_chr == true){
