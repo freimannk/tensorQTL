@@ -42,4 +42,5 @@ Optional arguments/info
 * --sample_genotype_ids : file with sample id and matching genotype id, with header
 * --pvalue : to filter out results by p-value, default: 1
 * --only_autosomal_chr : boolean, if false includes regions from X chr, default: true
+* --batf3_region_only : boolean, to run only testing region 1:212626194-213256972.
 * --median_tpm_filtration_file : median tpm file to filter genes, needed to speed up analysis, otherwise includes all genes. Examples are: data/LCL_naive_median_tpm_filtered_genes.tsv.gz and data/T-cell_median_tpm_filtered_genes.tsv.gz, from qcnorm workflow
