@@ -12,8 +12,9 @@ params.sample_genotype_ids=''
 params.only_autosomal_chr=true
 params.median_tpm_filtration_file=''
 params.vcf_genotype_field='DS'
-params.maf_filter=0.05
+params.maf_filter=0.01
 params.hwe=1e-5
+params.ac_filter=9
 params.batf3_region_only = false
 
 
@@ -65,7 +66,7 @@ process FilterSamplesFromVCF {
         awk '(NR>1)''{print \$2}' ${ids_file} > ${huge_vcf.simpleName}.txt
         bcftools view -S ${huge_vcf.simpleName}.txt ${huge_vcf} -Oz -o ${huge_vcf.simpleName}___samples_filtered.vcf.gz
         bcftools +fill-tags ${huge_vcf.simpleName}___samples_filtered.vcf.gz -Oz -o ${huge_vcf.simpleName}_tagged.vcf.gz
-        bcftools filter -i 'INFO/HWE > ${params.hwe} & MAF[0] > ${params.maf_filter}' ${huge_vcf.simpleName}_tagged.vcf.gz -Oz -o ${huge_vcf.simpleName}_tagged_filtered.vcf.gz
+        bcftools view -i 'AN[0]*MAF[0] > ${params.ac_filter} & MAF[0] > ${params.maf_filter} & INFO/HWE > ${params.hwe}' ${huge_vcf.simpleName}_tagged.vcf.gz -Oz -o ${huge_vcf.simpleName}_tagged_filtered.vcf.gz
         bcftools index ${huge_vcf.simpleName}_tagged_filtered.vcf.gz
         """
 
