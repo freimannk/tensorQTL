@@ -38,7 +38,7 @@ Optional arguments/info
 * --vcf_prefix_path : path to vcf file and its indexed file, example: `~/BLUEPRINT/BLUEPRINT.MAF001`, /BLUEPRINT folder has to contain files: `BLUEPRINT.MAF001.vcf.gz` and `BLUEPRINT.MAF001.vcf.gz.csi`
 * --covariates : covariates file, from qtlmap workflow
 * --vcf_genotype_field : `DS` or `GT`, default= `DS`
-* --maf_filter : MAF filter, default = 0.05
+* --maf_filter : MAF filter, default = 0.01
 * --sample_genotype_ids : file with sample id and matching genotype id, with header
 * --pvalue : to filter out results by p-value, default: 1
 * --only_autosomal_chr : boolean, if false includes regions from X chr, default: true
